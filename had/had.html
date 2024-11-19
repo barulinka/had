@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Had - Hra</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background-color: #f0f0f0;
+      border: 2px solid #333;
+    }
+    #restartButton {
+      display: none;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #restartButton:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center;">HAD</h1>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <button id="restartButton" onclick="restartGame()">Hrát znovu</button>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const restartButton = document.getElementById("restartButton");
+
+
+    const tileSize = 20;
+
+    let snake, direction, food, gameRunning;
+    const gameSpeed = 200; 
+    function initializeGame() {
+      snake = [{ x: 5, y: 5 }];
+      direction = { x: 1, y: 0 };
+      food = spawnFood();
+      gameRunning = true;
+      restartButton.style.display = "none"; 
+      gameLoop();
+    }
+
+    function gameLoop() {
+      if (!gameRunning) return;
+      setTimeout(() => {
+        clearCanvas();
+        moveSnake();
+        drawSnake();
+        drawFood();
+        if (gameRunning) requestAnimationFrame(gameLoop);
+      }, gameSpeed);
+    }
+
+    function moveSnake() {
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+
+      if (head.x < 0 || head.y < 0 || head.x >= canvas.width / tileSize || head.y >= canvas.height / tileSize || snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+        gameRunning = false;
+        restartButton.style.display = "block"; 
+        alert("Konec hry! Narazili jste.");
+        return;
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        food = spawnFood(); 
+      } else {
+        snake.pop(); 
+      }
+    }
+
+    function spawnFood() {
+      let position;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (canvas.width / tileSize)),
+          y: Math.floor(Math.random() * (canvas.height / tileSize)),
+        };
+      } while (snake.some(segment => segment.x === position.x && segment.y === position.y)); 
+      return position;
+    }
+
+    function drawSnake() {
+      ctx.fillStyle = "green";
+      snake.forEach(segment => {
+        ctx.fillRect(segment.x * tileSize, segment.y * tileSize, tileSize, tileSize);
+      });
+    }
+
+    function drawFood() {
+      ctx.fillStyle = "red";
+      ctx.fillRect(food.x * tileSize, food.y * tileSize, tileSize, tileSize);
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    document.addEventListener("keydown", event => {
+      const keyMap = {
+        ArrowUp: { x: 0, y: -1 },
+        ArrowDown: { x: 0, y: 1 },
+        ArrowLeft: { x: -1, y: 0 },
+        ArrowRight: { x: 1, y: 0 },
+      };
+      const newDirection = keyMap[event.key];
+      if (newDirection) {
+
+        if (newDirection.x !== -direction.x && newDirection.y !== -direction.y) {
+          direction = newDirection;
+        }
+      }
+    });
+
+    function restartGame() {
+      initializeGame();
+    }
+
+    initializeGame();
+  </script>
+</body>
+</html>
